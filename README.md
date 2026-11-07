@@ -29,16 +29,14 @@ Margaux, Sarah, Tom, Julie). On peut aussi forcer la démo avec `?demo` dans l'a
    Ça crée les tables, les règles d'accès, l'espace de stockage des fichiers et les notifications.
 3. **Authentication > URL Configuration** : mettre l'adresse Netlify du site dans *Site URL*
    (ex. `https://umber-studio.netlify.app`) et l'ajouter aussi dans *Redirect URLs*.
-4. **Project Settings > API** : copier la clé **anon public** (elle sert à l'étape suivante).
 
 ### 2. Netlify
 
 1. **Add new site > Import an existing project**, choisir le dépôt `umber` sur GitHub.
    Les réglages de build sont déjà dans `netlify.toml`.
-2. **Site configuration > Environment variables** : ajouter
-   - `VITE_SUPABASE_URL` = `https://unrgytrcnchjugrsruen.supabase.co`
-   - `VITE_SUPABASE_ANON_KEY` = la clé anon copiée plus haut
-3. Relancer un déploiement (**Deploys > Trigger deploy**).
+2. Rien d'autre à régler : l'adresse et la clé publishable du projet Supabase sont inscrites dans
+   `src/lib/api.ts`. Les variables `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` servent seulement
+   à pointer vers un autre projet.
 
 ### 3. Premier compte
 

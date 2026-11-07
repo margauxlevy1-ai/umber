@@ -2,8 +2,10 @@ import { demoApi } from './api-demo'
 import { supabaseApi } from './api-supabase'
 import type { Api } from './types'
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
+// Projet Supabase d'Umber Studio. La clé publishable est faite pour être publique :
+// ce sont les règles RLS de la base qui protègent les données.
+const url = (import.meta.env.VITE_SUPABASE_URL as string | undefined) || 'https://unrgytrcnchjugrsruen.supabase.co'
+const key = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) || 'sb_publishable_kC2GriiyKhQnRegyPN6SSg_ZlnwLsVo'
 
 export const DEMO_FLAG = 'umber-demo'
 
