@@ -592,3 +592,37 @@ table.grid { width: 100%; border-collapse: separate; border-spacing: 0; min-widt
   .space-hero { padding: 14px; border-radius: 14px; }
   .space-scope .views { background: var(--bg); }
 }
+
+/* ---------- pense-bête */
+.note-fab {
+  position: fixed; right: 22px; bottom: 22px; z-index: 45; width: 50px; height: 50px; border-radius: 50%;
+  background: #f3e3b5; color: #6b4e14; border: 1px solid #e2cc8e; display: grid; place-items: center; cursor: pointer;
+  box-shadow: 0 8px 22px rgba(29, 26, 23, .16); transition: transform .15s;
+}
+.note-fab:hover { transform: translateY(-2px); }
+.note-fab svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+.note-fab.filled::after { content: ''; position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #a9473b; border: 2px solid #f3e3b5; }
+.note-fab.on { background: var(--ink); color: #f3e3b5; border-color: var(--ink); }
+.note-fab.on::after { display: none; }
+.note {
+  position: fixed; right: 22px; bottom: 84px; z-index: 45; width: min(360px, calc(100vw - 32px)); height: min(420px, 60vh);
+  background: #fbf3dc; border: 1px solid #e8d9a8; border-radius: 4px 14px 14px 14px; display: flex; flex-direction: column;
+  box-shadow: 0 18px 48px rgba(29, 26, 23, .2); animation: up .18s ease-out; transform-origin: bottom right;
+}
+.note-head { display: flex; align-items: center; gap: 10px; padding: 12px 10px 8px 16px; border-bottom: 1px dashed #e2cc8e; }
+.note-ttl { font-family: var(--serif); font-size: 22px; line-height: 1; color: #4a3610; }
+.note-st { font-size: 11px; color: #8a7340; margin-left: auto; text-align: right; }
+.note-x { border: 0; background: none; font-size: 24px; line-height: 1; color: #8a7340; cursor: pointer; padding: 0 6px; }
+.note-x:hover { color: #4a3610; }
+.note textarea {
+  flex: 1; border: 0; background: transparent; resize: none; padding: 12px 16px 16px; font-size: 15px; line-height: 24px; color: #2e2410;
+  background-image: repeating-linear-gradient(transparent, transparent 23px, rgba(184, 160, 90, .22) 23px, rgba(184, 160, 90, .22) 24px);
+  background-position: 0 11px; background-attachment: local;
+}
+.note textarea:focus { outline: 0; }
+.note textarea::placeholder { color: #b39c63; }
+@media (max-width: 820px) {
+  .note-fab { right: 14px; bottom: calc(76px + env(safe-area-inset-bottom)); width: 46px; height: 46px; }
+  .note { right: 12px; left: 12px; width: auto; bottom: calc(132px + env(safe-area-inset-bottom)); height: min(380px, 52vh); }
+  .note textarea { font-size: 16px; }
+}

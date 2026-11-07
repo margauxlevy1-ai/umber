@@ -176,6 +176,9 @@ export interface Api {
   updateEntry(id: string, patch: EntryPatch): Promise<void>
   deleteEntry(id: string): Promise<void>
 
+  getNote(): Promise<string>
+  saveNote(body: string): Promise<void>
+
   listNotifications(): Promise<Notification[]>
   markRead(ids: string[]): Promise<void>
 }

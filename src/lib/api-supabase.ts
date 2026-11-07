@@ -214,6 +214,15 @@ export function supabaseApi(url: string, key: string): Api {
       check(await sb.from('entries').delete().eq('id', id))
     },
 
+    async getNote() {
+      const res = await sb.from('personal_notes').select('body').eq('user_id', await uid()).maybeSingle()
+      if (res.error) throw new Error(res.error.message)
+      return (res.data?.body as string | undefined) ?? ''
+    },
+    async saveNote(body) {
+      check(await sb.from('personal_notes').upsert({ user_id: await uid(), body }))
+    },
+
     async listNotifications() {
       return check(await sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(200)) ?? []
     },

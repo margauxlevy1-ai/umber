@@ -373,6 +373,13 @@ export function demoApi(): Api {
       save()
     },
 
+    async getNote() {
+      try { return localStorage.getItem('umber-demo-note-' + me().id) ?? '' } catch { return '' }
+    },
+    async saveNote(body) {
+      try { localStorage.setItem('umber-demo-note-' + me().id, body) } catch { /* rien */ }
+    },
+
     async listNotifications() {
       await delay()
       return db.notifications.filter((n) => n.user_id === me().id)

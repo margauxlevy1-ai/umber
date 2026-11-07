@@ -7,6 +7,7 @@ import { clientTone, roleOf } from '../lib/spaces'
 import { useStore } from '../lib/store'
 import { Avatar, Icon } from './ui'
 import { NewClientModal } from './Forms'
+import { Note } from './Note'
 
 export function Layout() {
   const { me, clients, projects, unread, staff } = useStore()
@@ -99,6 +100,7 @@ export function Layout() {
         </div>
       )}
       {newClient && <NewClientModal onClose={() => setNewClient(false)} />}
+      <Note />
     </>
   )
 }
