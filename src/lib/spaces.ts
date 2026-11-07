@@ -19,6 +19,14 @@ export const SPACES: SpaceDef[] = [
   { n: 8, name: 'Prestataires', hint: 'Devis, contrats, contacts', color: '#615424', tint: '#EFEBDA' },
 ]
 
+// Couleur stable par client (pastille de la barre latérale, page client)
+export function clientTone(name: string): SpaceDef {
+  let h = 0
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0
+  const pool = [SPACES[0], SPACES[1], SPACES[2], SPACES[3], SPACES[4], SPACES[6], SPACES[7]]
+  return pool[h % pool.length]
+}
+
 export const space = (n: number) => SPACES[n - 1] ?? SPACES[0]
 export const num = (n: number) => String(n).padStart(2, '0')
 

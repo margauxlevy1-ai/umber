@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { api, leaveDemo } from '../lib/api'
 import { DEMO_PEOPLE, reloadDemo } from '../lib/api-demo'
 import { firstName } from '../lib/format'
-import { roleOf } from '../lib/spaces'
+import { clientTone, roleOf } from '../lib/spaces'
 import { useStore } from '../lib/store'
 import { Avatar, Icon } from './ui'
 import { NewClientModal } from './Forms'
@@ -29,7 +29,7 @@ export function Layout() {
         const n = projects.filter((p) => p.client_id === c.id && p.status !== 'termine').length
         return (
           <NavLink key={c.id} to={`/clients/${c.id}`} className={nav}>
-            <span className="fl">{c.name.slice(0, 1).toUpperCase()}</span>
+            <span className="fl" style={{ background: clientTone(c.name).tint, color: clientTone(c.name).color }}>{c.name.slice(0, 1).toUpperCase()}</span>
             <span className="grow" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
             {n > 0 && <span className="c">{n}</span>}
           </NavLink>

@@ -256,7 +256,7 @@ export function ModuleView({ projectId, space }: { projectId: string; space: num
         return (
           <section key={c.kind} className="card">
             <div className="row between" style={{ marginBottom: 8 }}>
-              <div><h2>{c.label} <span className="sub" style={{ fontWeight: 500 }}>{list.length || ''}</span></h2>{c.hint && <div className="sub">{c.hint}</div>}</div>
+              <div><h2 className="sec-t">{c.label} <span className="sub" style={{ fontWeight: 500 }}>{list.length || ''}</span></h2>{c.hint && <div className="sub">{c.hint}</div>}</div>
             </div>
             {c.view === 'kanban' ? <Kanban {...props} /> : c.view === 'cards' ? <Cards {...props} /> : <Table {...props} />}
           </section>
@@ -278,18 +278,20 @@ function BudgetStats({ entries }: { entries: Entry[] }) {
   const pct = total ? Math.round((committed / total) * 100) : null
   return (
     <div className="stats">
-      <div className="card stat"><div className="k">Budget du projet</div><div className="v">{total ? euros(total) : '–'}</div><div className="sub">HT</div></div>
-      <div className="card stat"><div className="k">Engagé</div><div className="v" style={{ color: total && committed > total ? 'var(--late)' : undefined }}>{euros(committed)}</div><div className="sub">{pct !== null ? `${pct} % du budget` : 'sur les lignes'}</div></div>
-      <div className="card stat"><div className="k">Payé</div><div className="v">{euros(paid)}</div><div className="sub">{euros(committed - paid)} restent à payer</div></div>
-      <div className="card stat"><div className="k">Reste à engager</div><div className="v">{total ? euros(total - committed) : '–'}</div><div className="sub">{total ? (committed > total ? 'Budget dépassé' : 'disponible') : 'Saisis le budget plus bas'}</div></div>
+      <div className="card stat acc-space"><div className="k">Budget du projet</div><div className="v">{total ? euros(total) : '–'}</div><div className="sub">HT</div></div>
+      <div className="card stat acc-due"><div className="k">Engagé</div><div className="v" style={{ color: total && committed > total ? 'var(--late)' : undefined }}>{euros(committed)}</div>
+        {pct !== null && <div className="bar"><i style={{ width: `${Math.min(100, pct)}%`, background: pct > 100 ? 'var(--late)' : undefined }} /></div>}
+        <div className="sub">{pct !== null ? `${pct} % du budget` : 'sur les lignes'}</div></div>
+      <div className="card stat acc-ok"><div className="k">Payé</div><div className="v">{euros(paid)}</div><div className="sub">{euros(committed - paid)} restent à payer</div></div>
+      <div className="card stat acc-info"><div className="k">Reste à engager</div><div className="v">{total ? euros(total - committed) : '–'}</div><div className="sub">{total ? (committed > total ? 'Budget dépassé' : 'disponible') : 'Saisis le budget plus bas'}</div></div>
     </div>
   )
 }
 
 function SheetBlock({ sheet, entry, ctx, onSave }: { sheet: Sheet; entry?: Entry; ctx: Ctx; onSave: (key: string, v: unknown) => void }) {
   return (
-    <section className="card">
-      <h2 style={{ marginBottom: 10 }}>{sheet.label}</h2>
+    <section className="card sheet-card">
+      <h2 className="sec-t" style={{ marginBottom: 10 }}>{sheet.label}</h2>
       <div className="sheet">
         {sheet.fields.map((f) => (
           <div key={f.key} className={'f' + (f.wide ? ' wide' : '')}>
@@ -435,7 +437,7 @@ function Kanban({ c, list, ctx, onSave, onAdd, onOpen }: ListProps) {
         {stages.map((s, i) => {
           const items = shown.filter((e) => (e.data[stage.key] ?? stages[0]) === s)
           return (
-            <div key={s} className={'kcol' + (over === s ? ' over' : '')}
+            <div key={s} className={'kcol t-' + (stage.tones?.[s] ?? 'mute') + (over === s ? ' over' : '')}
               onDragOver={(ev) => { if (ctx.editable) { ev.preventDefault(); setOver(s) } }}
               onDragLeave={() => setOver(null)}
               onDrop={(ev) => {
@@ -444,7 +446,7 @@ function Kanban({ c, list, ctx, onSave, onAdd, onOpen }: ListProps) {
                 const e = list.find((x) => x.id === ev.dataTransfer.getData('text/plain'))
                 if (e && e.data[stage.key] !== s) onSave(e, { key: stage.key, value: s })
               }}>
-              <div className="khead"><span>{s}</span><span className="sub">{items.length}</span></div>
+              <div className="khead"><span><i className="kdot" />{s}</span><span className="sub">{items.length}</span></div>
               {items.map((e) => {
                 const owner = person(String(e.data.owner ?? ''))
                 return (

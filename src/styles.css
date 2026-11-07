@@ -523,3 +523,72 @@ table.grid { width: 100%; border-collapse: separate; border-spacing: 0; min-widt
   .demo-bar > span:first-child { display: none; }
   .demo-bar { font-size: 11px; }
 }
+
+/* ---------- couleurs de repère
+   Règle : la couleur d'un espace sert à le reconnaître (en-tête, titres, en-têtes de tableau),
+   les couleurs de statut (vert, ambre, rouge, violet) disent où on en est. Le reste reste neutre. */
+.space-scope { display: contents; }
+.space-hero {
+  background: linear-gradient(120deg, var(--t) 0%, color-mix(in srgb, var(--t) 40%, var(--bg)) 100%);
+  border: 1px solid color-mix(in srgb, var(--c) 18%, transparent); border-radius: 16px; padding: 18px 20px;
+}
+.space-hero .crumbs a { color: var(--c); }
+.space-scope .door span { color: var(--c); }
+.space-scope .door.active span { color: #fff; }
+.space-scope .view.on { color: var(--c); border-bottom-color: var(--c); }
+.space-scope .grid thead th, .space-scope .tasks thead th { background: var(--t); color: var(--c); border-bottom: 0; }
+.grid thead th:first-child, .tasks thead th:first-child { border-radius: 8px 0 0 8px; }
+.grid thead th:last-child, .tasks thead th:last-child { border-radius: 0 8px 8px 0; }
+.sec-t { display: flex; align-items: center; gap: 8px; }
+.sec-t::before { content: ''; width: 4px; height: 16px; border-radius: 2px; background: var(--c, var(--gold)); flex: none; }
+.sheet-card { background: linear-gradient(180deg, color-mix(in srgb, var(--t, #fff) 55%, #fff) 0%, #fff 70%); }
+.space-scope .add-in:focus { border-bottom-color: var(--c); }
+.space-scope .drop { border-color: color-mix(in srgb, var(--c) 35%, var(--line3)); background: color-mix(in srgb, var(--t) 45%, var(--panel)); }
+
+/* Groupes de tâches */
+.gpill { display: inline-flex; align-items: center; gap: 8px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 3px 4px 3px 12px; font-size: 13px; }
+.space-scope .gpill { background: var(--t); border-color: transparent; color: var(--c); }
+.gn { background: #fff; color: var(--muted); border-radius: 999px; padding: 0 7px; font-size: 11px; font-weight: 600; }
+
+/* Cartes de chiffres : un trait de couleur en haut */
+.stat { position: relative; overflow: hidden; }
+.stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--acc, transparent); }
+.acc-ink { --acc: var(--ink); }
+.acc-info { --acc: #2b4566; }
+.acc-late { --acc: #a9473b; }
+.acc-review { --acc: #5a3a6b; }
+.acc-ok { --acc: #3e7f5a; }
+.acc-due { --acc: #b87a22; }
+.acc-space { --acc: var(--c); }
+.bar { height: 6px; border-radius: 6px; background: var(--line2); margin: 6px 0 4px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: #b87a22; border-radius: 6px; }
+
+/* Projets : un liseré selon le statut */
+.suite { border-left: 4px solid var(--st, var(--line)); }
+.suite.st-cadrage { --st: #c9a36b; }
+.suite.st-en_cours { --st: #2b4566; }
+.suite.st-termine { --st: #3e7f5a; }
+.suite.on { border-left-color: var(--st); }
+.room .plq .rn { color: var(--c); }
+.room { background: linear-gradient(180deg, color-mix(in srgb, var(--c) 6%, #fff) 0%, #fff 45%); }
+
+/* Pipeline : chaque colonne prend la teinte de son étape */
+.kcol { --k: #9c9389; --kt: #f3efe9; background: var(--kt); border-color: transparent; }
+.kcol.t-info { --k: #2b4566; --kt: #eaeff5; }
+.kcol.t-due { --k: #b87a22; --kt: #f8f0e0; }
+.kcol.t-ok { --k: #3e7f5a; --kt: #e8f1eb; }
+.kcol.t-late { --k: #a9473b; --kt: #f7e6e3; }
+.khead { color: var(--k); }
+.kdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--k); margin-right: 7px; }
+.kcard { border-left: 3px solid var(--k); }
+
+/* Accueil : chaque tâche porte la couleur de son espace */
+.tli { width: 100%; background: none; border: 0; border-top: 1px solid var(--line2); cursor: pointer; text-align: left; padding-left: 12px; box-shadow: inset 3px 0 0 var(--c); }
+.tli:first-of-type { border-top: 0; }
+
+/* Barre latérale : client actif */
+.nav.active .fl { background: #fff !important; }
+@media (max-width: 820px) {
+  .space-hero { padding: 14px; border-radius: 14px; }
+  .space-scope .views { background: var(--bg); }
+}

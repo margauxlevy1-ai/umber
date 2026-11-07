@@ -42,10 +42,10 @@ export function Home() {
       </div>
 
       <div className="stats">
-        <div className="card stat"><div className="k">Projets en cours</div><div className="v">{active.length}</div><div className="sub">{clients.length} client{clients.length > 1 ? 's' : ''}</div></div>
-        <div className="card stat"><div className="k">Mes tâches ouvertes</div><div className="v">{tasks ? mine.length : '…'}</div><div className="sub">{week.filter((t) => t.assignee_id === me?.id).length} cette semaine</div></div>
-        <div className="card stat"><div className="k">En retard</div><div className="v" style={{ color: late.length ? 'var(--late)' : undefined }}>{tasks ? late.length : '…'}</div><div className="sub">{staff ? 'sur tous les projets' : 'dans tes espaces'}</div></div>
-        <div className="card stat"><div className="k">À valider</div><div className="v">{tasks ? toValidate.length : '…'}</div><div className="sub">{unread.length} message{unread.length > 1 ? 's' : ''} non lu{unread.length > 1 ? 's' : ''}</div></div>
+        <div className="card stat acc-ink"><div className="k">Projets en cours</div><div className="v">{active.length}</div><div className="sub">{clients.length} client{clients.length > 1 ? 's' : ''}</div></div>
+        <div className="card stat acc-info"><div className="k">Mes tâches ouvertes</div><div className="v">{tasks ? mine.length : '…'}</div><div className="sub">{week.filter((t) => t.assignee_id === me?.id).length} cette semaine</div></div>
+        <div className="card stat acc-late"><div className="k">En retard</div><div className="v" style={{ color: late.length ? 'var(--late)' : undefined }}>{tasks ? late.length : '…'}</div><div className="sub">{staff ? 'sur tous les projets' : 'dans tes espaces'}</div></div>
+        <div className="card stat acc-review"><div className="k">À valider</div><div className="v">{tasks ? toValidate.length : '…'}</div><div className="sub">{unread.length} message{unread.length > 1 ? 's' : ''} non lu{unread.length > 1 ? 's' : ''}</div></div>
       </div>
 
       <div className="cols">
@@ -61,7 +61,7 @@ export function Home() {
               const p = projects.find((x) => x.id === t.project_id)
               const sp = spaceOf(t.space)
               return (
-                <button key={t.id} className="li" style={{ width: '100%', background: 'none', border: 0, borderTop: '1px solid var(--line2)', cursor: 'pointer', textAlign: 'left' }} onClick={() => setOpen(t)}>
+                <button key={t.id} className="li tli" style={{ ['--c' as string]: sp.color }} onClick={() => setOpen(t)}>
                   <span className="grow">
                     <span className="ttl" style={{ fontWeight: 500 }}>{t.title}</span>
                     <span className="sub" style={{ display: 'block', fontSize: 12 }}>{p?.name} · <span style={{ color: sp.color }}>{num(sp.n)} {sp.name}</span></span>

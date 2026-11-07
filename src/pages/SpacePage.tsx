@@ -81,8 +81,8 @@ export function SpacePage() {
   const doneCount = tasks?.filter((t) => t.status === 'done').length ?? 0
 
   return (
-    <>
-      <div className="head">
+    <div className="space-scope" style={{ ['--c' as string]: sp.color, ['--t' as string]: sp.tint }}>
+      <div className="head space-hero">
         <div>
           <div className="crumbs">
             <Link to={`/clients/${project.client_id}`}>{client?.name}</Link> / <Link to={`/clients/${project.client_id}?projet=${project.id}`}>{project.name}</Link>
@@ -173,6 +173,6 @@ export function SpacePage() {
       )}
 
       {open && <TaskDrawer task={open} onClose={() => setParams(view === defaultView ? {} : { vue: view })} onChanged={load} />}
-    </>
+    </div>
   )
 }

@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
 import { keep, peek } from '../lib/cache'
 import { countdown, isLate, shortDate } from '../lib/format'
-import { PROJECT_STATUSES, SPACES, num } from '../lib/spaces'
+import { PROJECT_STATUSES, SPACES, clientTone, num } from '../lib/spaces'
 import { useStore } from '../lib/store'
 import type { Entry, FileRec, Task } from '../lib/types'
 import { MODULES } from '../lib/modules'
@@ -45,7 +45,7 @@ export function ClientPage() {
 
   return (
     <>
-      <div className="head">
+      <div className="head space-hero" style={{ ['--c' as string]: clientTone(client.name).color, ['--t' as string]: clientTone(client.name).tint }}>
         <div>
           <div className="crumbs"><Link to="/">Accueil</Link> / Clients</div>
           <h1>{client.name}</h1>
@@ -74,7 +74,7 @@ export function ClientPage() {
           {shown.map((p) => {
             const st = PROJECT_STATUSES.find((s) => s.v === p.status)?.label
             return (
-              <button key={p.id} className={'suite' + (p.id === project?.id ? ' on' : '')} onClick={() => setParams({ projet: p.id })}>
+              <button key={p.id} className={'suite st-' + p.status + (p.id === project?.id ? ' on' : '')} onClick={() => setParams({ projet: p.id })}>
                 <span className="num">{p.status === 'termine' ? 'Fini' : countdown(p.event_date)}</span>
                 <span style={{ fontWeight: 600 }}>{p.name}</span>
                 <span className="sub">{[shortDate(p.event_date), p.place, st].filter(Boolean).join(' · ')}</span>

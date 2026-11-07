@@ -165,7 +165,7 @@ function Group({ g, showWhere, showSpace, onOpen, patch, onChanged, canEdit, pro
   return (
     <>
       {g.label && (
-        <tr className="grp"><td colSpan={cols}>{g.label} <span className="sub" style={{ fontWeight: 500 }}>{g.tasks.length}</span></td></tr>
+        <tr className="grp"><td colSpan={cols}><span className="gpill">{g.label}<span className="gn">{g.tasks.length}</span></span></td></tr>
       )}
       {g.tasks.map((t) => {
         const sp = spaceOf(t.space)
