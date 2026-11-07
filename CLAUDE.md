@@ -9,6 +9,9 @@ Voir README.md pour le fonctionnement et la mise en service.
   Prestataires et partenaires n'ont pas de compte : ce sont des fiches.
 - Deux implémentations de l'API (`src/lib/types.ts` > `Api`) : Supabase (`api-supabase.ts`) et démo
   (`api-demo.ts`, localStorage). Toute nouvelle fonction doit exister dans les deux.
+- Le contenu propre à chaque espace est décrit dans `src/lib/modules.ts` (tableaux, fiches, pipeline),
+  stocké dans la table `entries` (kind + data jsonb) et affiché par `src/components/Entries.tsx`.
+  Ajouter un champ ou un tableau = modifier modules.ts, sans migration.
 - Les droits sont garantis par les règles RLS de `supabase/migrations/`, pas seulement par l'interface.
   Toute nouvelle table a ses règles. Ne jamais modifier une migration déjà appliquée : en ajouter une.
 - Vocabulaire : pas de champ lexical hôtel (pas de « pièce », « suite », « clé », « étage »).

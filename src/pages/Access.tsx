@@ -7,6 +7,32 @@ import { useStore } from '../lib/store'
 import type { AccessGrant, Invitation, Level, Profile, Role } from '../lib/types'
 import { Avatar, Icon, Modal, useToast } from '../components/ui'
 
+export function inviteLink(email: string) {
+  return `${window.location.origin}/?invitation=${encodeURIComponent(email)}`
+}
+
+function inviteText(name: string, email: string) {
+  return `Bonjour${name ? ' ' + firstName(name) : ''}, je t'ai ouvert un accès à Umber Studio, notre outil de suivi de projet. ` +
+    `Clique sur ce lien et choisis ton mot de passe (ton compte se crée avec l'adresse ${email}) : ${inviteLink(email)}`
+}
+
+function ShareInvite({ name, email }: { name: string; email: string }) {
+  const toast = useToast()
+  const text = inviteText(name, email)
+  const mail = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Ton accès à Umber Studio')}&body=${encodeURIComponent(text)}`
+  return (
+    <div className="row" style={{ gap: 6 }}>
+      <a className="btn sm dark" href={mail}>Envoyer par email</a>
+      <button className="btn sm" onClick={async () => {
+        try { await navigator.clipboard.writeText(text); toast.ok('Message copié : colle-le où tu veux (email, WhatsApp…)') } catch { prompt('Copie ce message :', text) }
+      }}>Copier le message</button>
+      <button className="btn sm ghost" onClick={async () => {
+        try { await navigator.clipboard.writeText(inviteLink(email)); toast.ok('Lien copié') } catch { prompt('Copie ce lien :', inviteLink(email)) }
+      }}>Copier le lien</button>
+    </div>
+  )
+}
+
 const NEXT: Record<string, Level | null> = { none: 'view', view: 'edit', edit: null }
 
 function Key({ level, onClick, disabled, label }: { level: Level | 'none'; onClick?: () => void; disabled?: boolean; label: string }) {
@@ -186,10 +212,14 @@ export function Access() {
       {invites.length > 0 && (
         <section className="card stack" style={{ gap: 6 }}>
           <h2>Invitations en attente</h2>
+          <div className="sub">Ces personnes n'ont pas encore créé leur compte. L'outil n'envoie pas d'email tout seul : envoie-leur le lien.</div>
           {invites.map((i) => (
-            <div key={i.email} className="li">
+            <div key={i.email} className="li" style={{ flexWrap: 'wrap' }}>
               <span>{i.full_name || i.email} <span className="sub">{i.email}</span> <span className={'role ' + roleOf(i.role).cls}>{roleOf(i.role).label}</span></span>
-              <button className="btn ghost sm danger" onClick={async () => { await api.cancelInvitation(i.email).catch(toast.fail); loadInvites() }}>Annuler</button>
+              <span className="row" style={{ gap: 6 }}>
+                <ShareInvite name={i.full_name} email={i.email} />
+                <button className="btn ghost sm danger" onClick={async () => { await api.cancelInvitation(i.email).catch(toast.fail); loadInvites() }}>Annuler</button>
+              </span>
             </div>
           ))}
         </section>
@@ -234,7 +264,6 @@ function InviteModal({ defaultProject, onClose, onDone }: { defaultProject: stri
   }
 
   if (done) {
-    const link = window.location.origin
     return (
       <Modal title="C'est fait" onClose={onClose}>
         {done === 'existing' ? (
@@ -243,10 +272,12 @@ function InviteModal({ defaultProject, onClose, onDone }: { defaultProject: stri
           <p style={{ margin: 0 }}>En démo, le compte de {name || email} est créé directement. Choisis cette personne dans la barre du haut pour voir l'outil avec ses yeux.</p>
         ) : (
           <>
-            <p style={{ margin: 0 }}>L'invitation est enregistrée. Envoie ce message à {name || email} :</p>
-            <div className="bub" style={{ userSelect: 'all' }}>
-              Bonjour{name ? ' ' + firstName(name) : ''}, je t'ai ouvert un accès à Umber Studio. Va sur {link}, clique sur « J'ai une invitation » et crée ton compte avec l'adresse {email}.
-            </div>
+            <p style={{ margin: 0 }}>
+              L'accès est prêt. <b>L'outil n'envoie pas d'email tout seul</b> : envoie ce lien à {name || email}, par email ou par message.
+              En cliquant, la personne choisit son mot de passe et retrouve ses espaces.
+            </p>
+            <div className="bub">{inviteText(name, email)}</div>
+            <ShareInvite name={name} email={email} />
           </>
         )}
         <div className="row" style={{ justifyContent: 'flex-end' }}><button className="btn dark" onClick={onClose}>Fermer</button></div>

@@ -4,7 +4,8 @@ import { api } from '../lib/api'
 import { countdown, isLate, shortDate } from '../lib/format'
 import { PROJECT_STATUSES, SPACES, num } from '../lib/spaces'
 import { useStore } from '../lib/store'
-import type { FileRec, Task } from '../lib/types'
+import type { Entry, FileRec, Task } from '../lib/types'
+import { MODULES } from '../lib/modules'
 import { ProjectModal } from '../components/Forms'
 import { Avatars, Icon, useToast } from '../components/ui'
 
@@ -20,12 +21,14 @@ export function ClientPage() {
   const project = list.find((p) => p.id === params.get('projet')) ?? shown[0] ?? list[0]
   const [tasks, setTasks] = useState<Task[]>([])
   const [files, setFiles] = useState<FileRec[]>([])
+  const [entries, setEntries] = useState<Entry[]>([])
   const [modal, setModal] = useState<'new' | 'edit' | null>(null)
 
   useEffect(() => {
     if (!project) return
     api.listTasks({ projectId: project.id }).then(setTasks).catch(toast.fail)
     api.listFiles(project.id).then(setFiles).catch(() => setFiles([]))
+    api.listEntries(project.id).then(setEntries).catch(() => setEntries([]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.id])
 
@@ -92,7 +95,8 @@ export function ClientPage() {
           </div>
           <div className="rooms">
             {SPACES.filter((s) => staff || visible.includes(s.n)).map((s) => {
-              const ts = tasks.filter((t) => t.space === s.n)
+              const ts = s.n === 1 ? tasks : tasks.filter((t) => t.space === s.n)
+              const summary = MODULES[s.n]?.summary?.(entries.filter((e) => e.space === s.n)) ?? null
               const open = ts.filter((t) => t.status !== 'done')
               const late = open.filter((t) => isLate(t.due_date, false)).length
               const review = open.filter((t) => t.status === 'review').length
@@ -104,7 +108,8 @@ export function ClientPage() {
                   {restricted && <svg className="lock" viewBox="0 0 24 24" role="img" aria-label="Espace réservé à l'équipe"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>}
                   <div className="plq"><span className="rn">{num(s.n)}</span><b>{s.name}</b></div>
                   <div className="st">
-                    {ts.length === 0 ? 'Pas encore de tâche' : `${open.length} tâche${open.length > 1 ? 's' : ''} ouverte${open.length > 1 ? 's' : ''}`}
+                    {summary ? <>{summary}<span className="sub"> · </span></> : null}
+                    {ts.length === 0 ? (summary ? <span className="sub">aucune tâche</span> : 'Pas encore de tâche') : `${open.length} tâche${open.length > 1 ? 's' : ''} ouverte${open.length > 1 ? 's' : ''}${s.n === 1 ? ' sur le projet' : ''}`}
                     {nf > 0 && <span className="sub"> · {nf} fichier{nf > 1 ? 's' : ''}</span>}
                   </div>
                   <div className="sub">{s.hint}</div>

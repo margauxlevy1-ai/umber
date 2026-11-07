@@ -1,5 +1,5 @@
 import { addDays } from './format'
-import type { Client, Comment, FileRec, Invitation, Notification, Profile, Project, SpaceAccess, Task, TaskStatus } from './types'
+import type { Client, Comment, Entry, FileRec, Invitation, Notification, Profile, Project, SpaceAccess, Task, TaskStatus } from './types'
 
 export interface DemoDb {
   profiles: Profile[]
@@ -9,6 +9,7 @@ export interface DemoDb {
   tasks: Task[]
   comments: Comment[]
   files: FileRec[]
+  entries: Entry[]
   notifications: Notification[]
   invitations: Invitation[]
 }
@@ -29,7 +30,7 @@ export function seed(): DemoDb {
     { id: 'c-oree', name: 'Cabinet Orée', note: '', created_at: now() },
   ]
   const projects: Project[] = [
-    { id: 'p-presse', client_id: 'c-more', name: 'Soirée presse', event_date: addDays(35), place: 'Paris 3e', status: 'en_cours', created_at: now() },
+    { id: 'p-presse', client_id: 'c-more', name: 'Soirée presse', event_date: addDays(35), place: 'Lyon', status: 'en_cours', created_at: now() },
     { id: 'p-printemps', client_id: 'c-more', name: 'Lancement printemps', event_date: addDays(132), place: 'Paris', status: 'cadrage', created_at: now() },
     { id: 'p-popup', client_id: 'c-more', name: 'Tournée pop-up', event_date: addDays(160), place: 'Lyon, Bordeaux, Lille', status: 'cadrage', created_at: now() },
     { id: 'p-celeste', client_id: 'c-celeste', name: 'Dîner clients', event_date: addDays(21), place: 'Bordeaux', status: 'en_cours', created_at: now() },
@@ -134,5 +135,92 @@ export function seed(): DemoDb {
     { id: 'n-5', user_id: 'u-julie', actor_id: 'u-margaux', kind: 'assigned', project_id: 'p-presse', space: 4, task_id: 't-11', excerpt: 'Plan de salle à valider', read_at: ago(30), created_at: ago(40) },
   ]
 
-  return { profiles, clients, projects, access, tasks, comments, files: [], notifications, invitations: [] }
+  const entries: Entry[] = []
+  let ep = 1
+  const e = (space: number, kind: string, title: string, data: Record<string, unknown> = {}, project_id = 'p-presse') =>
+    entries.push({ id: `e-${ep}`, project_id, space, kind, title, data, position: ep++, created_at: now() })
+
+  // 01 Orga : déroulé et intervenants
+  e(1, 'run', 'Livraison du décor', { time: '10 h 00', detail: 'Accès quai, côté cour', who: 'Tom' })
+  e(1, 'run', 'Arrivée de l’équipe Umber', { time: '11 h 30', detail: 'Train de 8 h 04', who: 'Équipe' })
+  e(1, 'run', 'Installation son et lumière', { time: '12 h 00', detail: 'Studio Son', who: 'Tom' })
+  e(1, 'run', 'Arrivée du traiteur', { time: '15 h 00', detail: 'Office sur place', who: 'Sarah' })
+  e(1, 'run', 'Ouverture des portes', { time: '19 h 00', detail: 'Accueil presse, vestiaire', who: 'Margaux' })
+  e(1, 'run', 'Démontage', { time: '1 h 00', detail: 'Lieu rendu à 3 h', who: 'Tom' })
+  e(1, 'speaker', 'DJ Nova', { role: 'DJ', slot: '21 h – 23 h', status: 'À confirmer' })
+  e(1, 'speaker', 'Claire, fondatrice de More', { role: 'Discours', slot: '19 h 45', status: 'Confirmé' })
+
+  // 02 Budget
+  e(2, 'budget', 'Budget du projet', { total: 25000, note: 'HT, validé par More' })
+  e(2, 'line', 'Lieu', { state: 'Contrat signé', planned: 8000, committed: 8000, paid: 2400 })
+  e(2, 'line', 'Traiteur et bar', { state: 'Acompte réglé', planned: 7500, committed: 6900, paid: 2070 })
+  e(2, 'line', 'Son et DJ', { state: 'Devis reçu le 5 nov.', planned: 2000, committed: 2200, paid: 0 })
+  e(2, 'line', 'Photographe', { planned: 1200, committed: 1200, paid: 0 })
+  e(2, 'line', 'Invitations et goodies', { state: 'En attente du BAT', planned: 3500, committed: 46, paid: 46 })
+  e(2, 'line', 'Déplacements', { planned: 1800, committed: 312, paid: 312 })
+  e(2, 'line', 'Imprévus', { planned: 1000, committed: 0, paid: 0 })
+  e(2, 'due', 'Lieu, solde', { amount: 5600, date: addDays(24), status: 'À payer' })
+  e(2, 'due', 'Studio Son, acompte', { amount: 660, status: 'Devis à valider' })
+  e(2, 'due', 'Remboursement Tom, trains', { amount: 312, date: addDays(3), status: 'À payer' })
+  e(2, 'billing', 'Acompte 30 %', { amount: 7500, date: addDays(-20), status: 'Reçue' })
+  e(2, 'billing', 'Solde 70 %', { amount: 17500, date: addDays(37), status: 'À émettre' })
+
+  // 03 Logistique
+  for (const who of ['Margaux', 'Sarah', 'Tom']) e(3, 'trip', 'Paris > Lyon', { who, date: addDays(35), time: '8 h 04', mode: 'Train', status: 'Réservé', cost: 78 })
+  e(3, 'trip', 'Paris > Lyon', { who: 'Photographe', date: addDays(35), time: '14 h 04', mode: 'Train', status: 'Réservé', cost: 78 })
+  e(3, 'trip', 'Hôtel, 3 chambres', { who: 'Équipe Umber', date: addDays(35), mode: 'Hébergement', status: 'À réserver', cost: 360 })
+  e(3, 'shuttle', 'Gare Part-Dieu > lieu', { times: '18 h 30 et 19 h 15', capacity: '2 × 30 places', provider: 'Navettes Rhône', status: 'Horaires à valider' })
+  e(3, 'shuttle', 'Lieu > centre-ville', { times: '23 h 30 et 0 h 30', capacity: '2 × 30 places', provider: 'Navettes Rhône', status: 'Horaires à valider' })
+  e(3, 'gear', 'Kakémonos More', { qty: 2, how: 'Tom les apporte', status: 'Prêt' })
+  e(3, 'gear', 'Sacs goodies', { qty: 120, how: 'Livrés au lieu la veille', status: 'À prévoir' })
+  e(3, 'gear', 'Rallonges, multiprises, gaffer', { how: 'Caisse de régie Umber', status: 'Prêt' })
+
+  // 04 Lieu
+  e(4, 'venue', 'Le lieu retenu', { name: 'Atelier Rhône', address: 'Quai de Saône, Lyon', description: 'Ancienne halle industrielle, verrière', standing: 180, seated: 90, setup: '10 h', return: '3 h', contract: 'Signé le 21 oct.' })
+  e(4, 'zone', 'Accueil et vestiaire', { detail: 'Navettes à l’entrée' })
+  e(4, 'zone', 'Bar champagne', { detail: 'Maison Pétillante' })
+  e(4, 'zone', 'Scène', { detail: 'Discours 19 h 45, DJ 21 h' })
+  e(4, 'zone', 'Coin photo', { detail: 'Lumière Seize' })
+  e(4, 'rule', 'Bougies et flammes nues', { rule: 'Interdites' })
+  e(4, 'rule', 'Niveau sonore', { rule: 'Limité après 23 h' })
+  e(4, 'rule', 'Accrochage au plafond', { rule: 'Sur validation du régisseur' })
+  e(4, 'contact', 'Régisseur', { name: 'Karim' })
+  e(4, 'contact', 'Responsable privatisation', { name: 'Anne' })
+  e(4, 'option', 'Atelier Rhône', { city: 'Lyon', capacity: 180, price: 8000, status: 'Retenu' })
+  e(4, 'option', 'Galerie des Canuts', { city: 'Lyon', capacity: 80, status: 'Écarté', note: 'Trop petite, 80 debout' })
+  e(4, 'option', 'Péniche Saône', { city: 'Lyon', capacity: 150, status: 'Écarté', note: 'Indisponible à la date' })
+
+  // 05 DA et goodies
+  e(5, 'proposal', 'Moodboard lumière d’hiver', { folder: 'Moodboards', visual: 'f-2', status: 'Validé', version: 'v2' })
+  e(5, 'proposal', 'Coffret presse, option 1', { folder: 'Goodies', visual: 'f-1', status: 'À valider' })
+  e(5, 'proposal', 'Coffret presse, option 3', { folder: 'Goodies', visual: 'f-3', status: 'À valider' })
+  e(5, 'proposal', 'Invitation, BAT', { folder: 'Invitations', status: 'Brouillon', version: 'v3, couleur crème' })
+  e(5, 'goodie', 'Sac en coton brodé', { qty: 120, supplier: 'Brodé Main', bat: 'Validé', delivery: addDays(27), unit: 9 })
+  e(5, 'goodie', 'Bougie parfumée More', { qty: 120, supplier: 'Cire et Mèche', bat: 'À valider', delivery: addDays(31), unit: 11 })
+  e(5, 'goodie', 'Carnet gravé', { qty: 120, supplier: 'Papeterie Fil', bat: 'Pas commencé', unit: 7.5 })
+
+  // 06 Ressources
+  e(6, 'link', 'Photos de l’édition 2025', { url: 'https://www.dropbox.com/', folder: 'Brief et cadrage' })
+
+  // 07 Partenariats
+  e(7, 'partner', 'Studio Cire', { direction: 'Inbound', stage: 'À qualifier', offer: 'Propose 120 bougies' })
+  e(7, 'partner', 'Beauté Nomade', { direction: 'Inbound', stage: 'À qualifier', offer: 'Trousses de voyage' })
+  e(7, 'partner', 'Lumen Audio', { direction: 'Outbound', stage: 'Premier contact', offer: 'Prêt d’enceintes', owner: 'u-sarah', next: addDays(3) })
+  e(7, 'partner', 'Fleurs Sauvages', { direction: 'Outbound', stage: 'Négociation', offer: 'Décor floral contre visibilité', owner: 'u-margaux', next: addDays(5) })
+  e(7, 'partner', 'Maison Pétillante', {
+    direction: 'Outbound', stage: 'Contrat', offer: '150 bouteilles de champagne', owner: 'u-margaux', value: 6000,
+    contact: 'Élise, responsable événements',
+    counterparts: 'Logo sur le carton d’invitation\nBar à champagne dédié\nMention dans le communiqué de presse\nPhotos livrées à J+7',
+    history: '20 oct. : premier appel, intérêt pour la presse beauté.\n28 oct. : notre proposition, 120 bouteilles contre le logo.\n3 nov. : contre-proposition, 150 bouteilles et un bar dédié.\n6 nov. : contrat reçu.',
+  })
+  e(7, 'partner', 'Taxi Rhône', { direction: 'Inbound', stage: 'Signé', offer: '−20 % sur les navettes' })
+
+  // 08 Prestataires
+  e(8, 'supplier', 'Maison Rhône', { trade: 'Traiteur', service: 'Dîner debout, 120 personnes, bar', status: 'Confirmé', amount: 6900, arrival: '15 h' })
+  e(8, 'supplier', 'Studio Son', { trade: 'Son et DJ', service: 'Sonorisation, micro discours, DJ', status: 'Devis à valider', amount: 2200, arrival: '12 h', contact: 'Léa', needs: '2 prises 16 A près de la scène, accès quai', docs: 'Devis reçu le 5 nov.\nKbis : manquant\nAttestation d’assurance : manquante' })
+  e(8, 'supplier', 'Lumière Seize', { trade: 'Photo et vidéo', service: 'Reportage 18 h – 23 h, 80 photos', status: 'Confirmé', amount: 1200, arrival: '18 h' })
+  e(8, 'supplier', 'Papeterie Fil', { trade: 'Impression', service: 'Cartons d’invitation, dorure', status: 'Confirmé', amount: 640 })
+  e(8, 'supplier', 'Navettes Rhône', { trade: 'Transport', service: 'Navettes gare et lieu, 2 × 2 rotations', status: 'Devis attendu', arrival: '18 h 30' })
+
+  return { profiles, clients, projects, access, tasks, comments, files: [], entries, notifications, invitations: [] }
 }

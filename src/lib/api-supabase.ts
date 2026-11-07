@@ -1,5 +1,5 @@
 import { createClient as createSupabase, type SupabaseClient } from '@supabase/supabase-js'
-import type { Api, Client, Profile, Project, Task } from './types'
+import type { Api, Client, Entry, FileRec, Profile, Project, Task } from './types'
 
 function check<T>(res: { data: T; error: { message: string } | null }): T {
   if (res.error) throw new Error(res.error.message)
@@ -167,22 +167,27 @@ export function supabaseApi(url: string, key: string): Api {
       if (space) q = q.eq('space', space)
       return check(await q.order('created_at', { ascending: false })) ?? []
     },
-    async uploadFile(projectId, space, file) {
+    async uploadFile(projectId, space, file, category = '') {
       const path = `${projectId}/${space}/${crypto.randomUUID()}-${safeName(file.name)}`
       const up = await sb.storage.from('files').upload(path, file, { contentType: file.type || undefined })
       if (up.error) throw new Error(up.error.message)
       const res = await sb.from('files').insert({
         project_id: projectId,
         space,
+        category,
         name: file.name,
         path,
         size: file.size,
         mime: file.type,
-      })
-      if (res.error) {
+      }).select().single()
+      if (res.error || !res.data) {
         await sb.storage.from('files').remove([path])
-        throw new Error(res.error.message)
+        throw new Error(res.error?.message ?? 'Envoi impossible')
       }
+      return res.data as FileRec
+    },
+    async updateFile(id, patch) {
+      check(await sb.from('files').update(patch).eq('id', id))
     },
     async fileUrl(f) {
       const { data, error } = await sb.storage.from('files').createSignedUrl(f.path, 3600)
@@ -192,6 +197,21 @@ export function supabaseApi(url: string, key: string): Api {
     async deleteFile(f) {
       check(await sb.from('files').delete().eq('id', f.id))
       await sb.storage.from('files').remove([f.path])
+    },
+
+    async listEntries(projectId, space) {
+      let q = sb.from('entries').select('*').eq('project_id', projectId)
+      if (space) q = q.eq('space', space)
+      return check(await q.order('position').order('created_at')) ?? []
+    },
+    async createEntry(e) {
+      return one<Entry>(await sb.from('entries').insert({ ...e, position: Date.now() / 1000 }).select().single())
+    },
+    async updateEntry(id, patch) {
+      check(await sb.from('entries').update(patch).eq('id', id))
+    },
+    async deleteEntry(id) {
+      check(await sb.from('entries').delete().eq('id', id))
     },
 
     async listNotifications() {

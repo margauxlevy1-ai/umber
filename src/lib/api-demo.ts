@@ -1,9 +1,9 @@
 import { isStaffRole } from './spaces'
 import { plainText } from './format'
 import { seed, type DemoDb } from './demo-data'
-import type { Api, FileRec, Notification, Profile } from './types'
+import type { Api, Entry, FileRec, Notification, Profile } from './types'
 
-const KEY = 'umber-demo-v1'
+const KEY = 'umber-demo-v2'
 const WHO = 'umber-demo-user'
 const blobs = new Map<string, string>()
 
@@ -15,7 +15,7 @@ function svgFile(label: string, bg: string): string {
 function freshDb(): DemoDb {
   const db = seed()
   const f = (id: string, project_id: string, space: number, name: string, bg: string, by: string): FileRec => ({
-    id, project_id, space, name, path: svgFile(name.replace(/\.svg$/, ''), bg), size: 48_000, mime: 'image/svg+xml', uploaded_by: by,
+    id, project_id, space, category: '', name, path: svgFile(name.replace(/\.svg$/, ''), bg), size: 48_000, mime: 'image/svg+xml', uploaded_by: by,
     created_at: new Date(Date.now() - 86400_000).toISOString(),
   })
   db.files = [
@@ -181,6 +181,7 @@ export function demoApi(): Api {
       db.tasks = db.tasks.filter((t) => t.project_id !== pid)
       db.comments = db.comments.filter((t) => t.project_id !== pid)
       db.files = db.files.filter((t) => t.project_id !== pid)
+      db.entries = db.entries.filter((t) => t.project_id !== pid)
       db.access = db.access.filter((t) => t.project_id !== pid)
       db.notifications = db.notifications.filter((t) => t.project_id !== pid)
       save()
@@ -249,8 +250,13 @@ export function demoApi(): Api {
     async updateTask(tid, patch) {
       const t = db.tasks.find((x) => x.id === tid)
       if (!t || !canEdit(t.project_id, t.space)) deny()
+      if (patch.space && !canEdit(t!.project_id, patch.space)) deny()
       const before = t!.assignee_id
       Object.assign(t!, patch)
+      if (patch.space) {
+        db.comments.forEach((c) => { if (c.task_id === tid) c.space = patch.space! })
+        db.notifications.forEach((n) => { if (n.task_id === tid) n.space = patch.space! })
+      }
       if (t!.assignee_id && t!.assignee_id !== before && t!.assignee_id !== me().id) {
         notify({ user_id: t!.assignee_id, actor_id: me().id, kind: 'assigned', project_id: t!.project_id, space: t!.space, task_id: t!.id, excerpt: t!.title })
       }
@@ -302,7 +308,7 @@ export function demoApi(): Api {
         .filter((f) => f.project_id === projectId && (!sp || f.space === sp) && canView(f.project_id, f.space))
         .sort((a, b) => b.created_at.localeCompare(a.created_at))
     },
-    async uploadFile(projectId, sp, file) {
+    async uploadFile(projectId, sp, file, category = '') {
       if (!canEdit(projectId, sp)) deny()
       const fid = id('f')
       let path = 'mem:' + fid
@@ -316,7 +322,15 @@ export function demoApi(): Api {
       } else {
         blobs.set(path, URL.createObjectURL(file))
       }
-      db.files.push({ id: fid, project_id: projectId, space: sp, name: file.name, path, size: file.size, mime: file.type, uploaded_by: me().id, created_at: nowIso() })
+      const rec: FileRec = { id: fid, project_id: projectId, space: sp, category, name: file.name, path, size: file.size, mime: file.type, uploaded_by: me().id, created_at: nowIso() }
+      db.files.push(rec)
+      save()
+      return rec
+    },
+    async updateFile(fid, patch) {
+      const f = db.files.find((x) => x.id === fid)
+      if (!f || !canEdit(f.project_id, f.space)) deny()
+      Object.assign(f!, patch)
       save()
     },
     async fileUrl(f) {
@@ -330,6 +344,32 @@ export function demoApi(): Api {
     async deleteFile(f) {
       if (!canEdit(f.project_id, f.space)) deny()
       db.files = db.files.filter((x) => x.id !== f.id)
+      save()
+    },
+
+    async listEntries(projectId, sp) {
+      await delay()
+      return (db.entries ?? [])
+        .filter((e) => e.project_id === projectId && (!sp || e.space === sp) && canView(e.project_id, e.space))
+        .sort((a, b) => a.position - b.position)
+    },
+    async createEntry(e) {
+      if (!canEdit(e.project_id, e.space)) deny()
+      const entry: Entry = { ...e, id: id('e'), position: Date.now() / 1000, created_at: nowIso() }
+      db.entries = [...(db.entries ?? []), entry]
+      save()
+      return entry
+    },
+    async updateEntry(eid, patch) {
+      const e = db.entries.find((x) => x.id === eid)
+      if (!e || !canEdit(e.project_id, e.space)) deny()
+      Object.assign(e!, patch)
+      save()
+    },
+    async deleteEntry(eid) {
+      const e = db.entries.find((x) => x.id === eid)
+      if (!e || !canEdit(e.project_id, e.space)) deny()
+      db.entries = db.entries.filter((x) => x.id !== eid)
       save()
     },
 

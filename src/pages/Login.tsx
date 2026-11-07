@@ -37,8 +37,10 @@ function DemoLogin() {
 }
 
 function RealLogin() {
-  const [mode, setMode] = useState<Mode>('login')
-  const [email, setEmail] = useState('')
+  // Lien d'invitation : /?invitation=email ouvre directement la création de compte
+  const invited = new URLSearchParams(window.location.search).get('invitation') ?? ''
+  const [mode, setMode] = useState<Mode>(invited ? 'signup' : 'login')
+  const [email, setEmail] = useState(invited)
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [err, setErr] = useState('')
@@ -54,7 +56,7 @@ function RealLogin() {
       if (mode === 'login') await api.signIn(email, password)
       if (mode === 'signup') {
         const r = await api.signUp(email, password, name)
-        if (r === 'confirm') setOk('Compte créé. Ouvre l’email de confirmation pour entrer.')
+        if (r === 'confirm') setOk('Compte créé. Ouvre l’email de confirmation pour entrer (pense à regarder dans les indésirables).')
       }
       if (mode === 'magic') {
         await api.sendMagicLink(email)

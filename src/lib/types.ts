@@ -62,10 +62,24 @@ export interface Comment {
   created_at: string
 }
 
+export interface Entry {
+  id: string
+  project_id: string
+  space: number
+  kind: string
+  title: string
+  data: Record<string, unknown>
+  position: number
+  created_at: string
+}
+
+export type EntryPatch = Partial<Pick<Entry, 'title' | 'data' | 'position'>>
+
 export interface FileRec {
   id: string
   project_id: string
   space: number
+  category: string
   name: string
   path: string
   size: number
@@ -105,7 +119,7 @@ export type NewTask = Pick<Task, 'project_id' | 'space' | 'title'> &
   Partial<Pick<Task, 'description' | 'status' | 'assignee_id' | 'due_date' | 'priority' | 'group_label'>>
 
 export type TaskPatch = Partial<
-  Pick<Task, 'title' | 'description' | 'status' | 'assignee_id' | 'due_date' | 'priority' | 'group_label' | 'position'>
+  Pick<Task, 'title' | 'description' | 'status' | 'assignee_id' | 'due_date' | 'priority' | 'group_label' | 'position' | 'space'>
 >
 
 export interface TaskFilter {
@@ -152,9 +166,15 @@ export interface Api {
   deleteComment(id: string): Promise<void>
 
   listFiles(projectId: string, space?: number): Promise<FileRec[]>
-  uploadFile(projectId: string, space: number, file: File): Promise<void>
+  uploadFile(projectId: string, space: number, file: File, category?: string): Promise<FileRec>
+  updateFile(id: string, patch: { category: string }): Promise<void>
   fileUrl(f: FileRec): Promise<string>
   deleteFile(f: FileRec): Promise<void>
+
+  listEntries(projectId: string, space?: number): Promise<Entry[]>
+  createEntry(e: Pick<Entry, 'project_id' | 'space' | 'kind' | 'title' | 'data'>): Promise<Entry>
+  updateEntry(id: string, patch: EntryPatch): Promise<void>
+  deleteEntry(id: string): Promise<void>
 
   listNotifications(): Promise<Notification[]>
   markRead(ids: string[]): Promise<void>
