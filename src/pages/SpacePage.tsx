@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
+import { keep, peek } from '../lib/cache'
 import { countdown, shortDate } from '../lib/format'
 import { SPACES, num, space as spaceOf } from '../lib/spaces'
 import { useStore } from '../lib/store'
@@ -27,14 +28,15 @@ export function SpacePage() {
   const mod = MODULES[sn]
   const defaultView: View = isOrga || !mod ? 'taches' : 'espace'
   const view = (params.get('vue') as View) || defaultView
-  const [tasks, setTasks] = useState<Task[] | null>(null)
+  const tkey = `tasks:${projectId}:${sn === 1 ? 'all' : sn}`
+  const [tasks, setTasks] = useState<Task[] | null>(() => peek<Task[]>(tkey))
   const [hideDone, setHideDone] = useState(false)
   const [counts, setCounts] = useState({ files: 0, msgs: 0 })
 
   // Dans Orga, la to-do regroupe les tâches de tous les espaces du projet.
-  const load = () => api.listTasks(isOrga ? { projectId } : { projectId, space: sn }).then(setTasks).catch(toast.fail)
+  const load = () => api.listTasks(isOrga ? { projectId } : { projectId, space: sn }).then(keep(tkey)).then(setTasks).catch(toast.fail)
   useEffect(() => {
-    setTasks(null)
+    setTasks(peek<Task[]>(tkey))
     load()
     api.listFiles(projectId, sn).then((f) => setCounts((c) => ({ ...c, files: f.length }))).catch(() => {})
     api.listComments(projectId, sn, null).then((m) => setCounts((c) => ({ ...c, msgs: m.length }))).catch(() => {})

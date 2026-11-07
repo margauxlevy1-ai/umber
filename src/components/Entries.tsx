@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { api } from '../lib/api'
+import { keep, peek } from '../lib/cache'
 import { shortDate } from '../lib/format'
 import { MODULES, euros, num, type Collection, type Field, type Sheet, type Tone } from '../lib/modules'
 import { useStore } from '../lib/store'
@@ -164,14 +165,21 @@ export function ModuleView({ projectId, space }: { projectId: string; space: num
   const { canEdit } = useStore()
   const toast = useToast()
   const mod = MODULES[space]
-  const [entries, setEntries] = useState<Entry[] | null>(null)
-  const [files, setFiles] = useState<FileRec[]>([])
+  const ekey = `entries:${projectId}:${space}`
+  const [entries, setEntriesRaw] = useState<Entry[] | null>(() => peek<Entry[]>(ekey))
+  const setEntries = (v: Entry[] | null | ((l: Entry[] | null) => Entry[] | null)) =>
+    setEntriesRaw((cur) => {
+      const next = typeof v === 'function' ? v(cur) : v
+      if (next) keep<Entry[]>(ekey)(next)
+      return next
+    })
+  const [files, setFiles] = useState<FileRec[]>(() => peek<FileRec[]>(`files:${projectId}:${space}`) ?? [])
   const [open, setOpen] = useState<{ e: Entry; c: Collection } | null>(null)
   const editable = canEdit(projectId, space)
 
-  const loadFiles = () => api.listFiles(projectId, space).then(setFiles).catch(() => setFiles([]))
+  const loadFiles = () => api.listFiles(projectId, space).then(keep(`files:${projectId}:${space}`)).then(setFiles).catch(() => setFiles([]))
   useEffect(() => {
-    setEntries(null)
+    setEntriesRaw(peek<Entry[]>(ekey))
     api.listEntries(projectId, space).then(setEntries).catch(toast.fail)
     loadFiles()
     // eslint-disable-next-line react-hooks/exhaustive-deps

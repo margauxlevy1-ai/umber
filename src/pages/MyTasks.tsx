@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
+import { keep, peek } from '../lib/cache'
 import { isLate } from '../lib/format'
 import { useStore } from '../lib/store'
 import type { Task } from '../lib/types'
@@ -13,12 +14,13 @@ export function MyTasks() {
   const [params, setParams] = useSearchParams()
   const who = params.get('qui') ?? me?.id ?? ''
   const filter = params.get('filtre') ?? 'ouvertes'
-  const [tasks, setTasks] = useState<Task[] | null>(null)
+  const tkey = `tasks:who:${who}`
+  const [tasks, setTasks] = useState<Task[] | null>(() => peek<Task[]>(tkey))
   const [open, setOpen] = useState<Task | null>(null)
 
-  const load = () => api.listTasks(who === 'tous' ? {} : { assigneeId: who }).then(setTasks).catch(toast.fail)
+  const load = () => api.listTasks(who === 'tous' ? {} : { assigneeId: who }).then(keep(tkey)).then(setTasks).catch(toast.fail)
   useEffect(() => {
-    setTasks(null)
+    setTasks(peek<Task[]>(tkey))
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [who])

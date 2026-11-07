@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
+import { keep, peek } from '../lib/cache'
 import { fileExt, fileSize, timeAgo } from '../lib/format'
 import { space as spaceOf, num } from '../lib/spaces'
 import { FILE_FOLDERS } from '../lib/modules'
@@ -17,10 +18,11 @@ export function FilesPanel({ projectId, space, onCount, showSpace }: {
 }) {
   const { canEdit, person } = useStore()
   const toast = useToast()
-  const [files, setFiles] = useState<FileRec[] | null>(null)
+  const fkey = `filespanel:${projectId}:${space ?? 'all'}`
+  const [files, setFiles] = useState<FileRec[] | null>(() => peek<FileRec[]>(fkey))
   const [hot, setHot] = useState(false)
   const [busy, setBusy] = useState(0)
-  const [thumbs, setThumbs] = useState<Record<string, string>>({})
+  const [thumbs, setThumbs] = useState<Record<string, string>>(() => peek<Record<string, string>>('thumbs:' + fkey) ?? {})
   const [folder, setFolder] = useState('')
   const [everything, setEverything] = useState(false)
   const input = useRef<HTMLInputElement>(null)
@@ -28,7 +30,8 @@ export function FilesPanel({ projectId, space, onCount, showSpace }: {
   const allSpaces = showSpace || everything
 
   async function load() {
-    const f = await api.listFiles(projectId, everything ? undefined : space)
+    const key = everything ? `filespanel:${projectId}:all` : fkey
+    const f = keep<FileRec[]>(key)(await api.listFiles(projectId, everything ? undefined : space))
     setFiles(f)
     onCount?.(f.length)
     const t: Record<string, string> = {}
@@ -37,10 +40,10 @@ export function FilesPanel({ projectId, space, onCount, showSpace }: {
         try { t[x.id] = await api.fileUrl(x) } catch { /* pas d'aperçu */ }
       }),
     )
-    setThumbs(t)
+    setThumbs(keep<Record<string, string>>('thumbs:' + key)(t))
   }
   useEffect(() => {
-    setFiles(null)
+    setFiles(peek<FileRec[]>(everything ? `filespanel:${projectId}:all` : fkey))
     load().catch(toast.fail)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, space, everything])

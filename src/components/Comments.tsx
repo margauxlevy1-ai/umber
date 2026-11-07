@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { api } from '../lib/api'
+import { keep, peek } from '../lib/cache'
 import { MENTION_RE, firstName, mentionIds, timeAgo } from '../lib/format'
 import { useStore } from '../lib/store'
 import type { Comment, Profile } from '../lib/types'
@@ -137,15 +138,16 @@ export function Thread({ projectId, space, taskId, onCount }: {
 }) {
   const { person, membersOf, me, staff, refreshInbox } = useStore()
   const toast = useToast()
-  const [items, setItems] = useState<Comment[] | null>(null)
+  const ckey = `comments:${projectId}:${space}:${taskId ?? ''}`
+  const [items, setItems] = useState<Comment[] | null>(() => peek<Comment[]>(ckey))
 
   async function load() {
-    const c = await api.listComments(projectId, space, taskId)
+    const c = keep<Comment[]>(ckey)(await api.listComments(projectId, space, taskId))
     setItems(c)
     onCount?.(c.length)
   }
   useEffect(() => {
-    setItems(null)
+    setItems(peek<Comment[]>(ckey))
     load().catch(toast.fail)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, space, taskId])

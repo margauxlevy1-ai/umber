@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../lib/api'
+import { keep, peek } from '../lib/cache'
 import { countdown, isLate, shortDate } from '../lib/format'
 import { PROJECT_STATUSES, SPACES, num } from '../lib/spaces'
 import { useStore } from '../lib/store'
@@ -26,9 +27,13 @@ export function ClientPage() {
 
   useEffect(() => {
     if (!project) return
-    api.listTasks({ projectId: project.id }).then(setTasks).catch(toast.fail)
-    api.listFiles(project.id).then(setFiles).catch(() => setFiles([]))
-    api.listEntries(project.id).then(setEntries).catch(() => setEntries([]))
+    const k = project.id
+    setTasks(peek<Task[]>(`ctasks:${k}`) ?? [])
+    setFiles(peek<FileRec[]>(`cfiles:${k}`) ?? [])
+    setEntries(peek<Entry[]>(`centries:${k}`) ?? [])
+    api.listTasks({ projectId: k }).then(keep(`ctasks:${k}`)).then(setTasks).catch(toast.fail)
+    api.listFiles(k).then(keep(`cfiles:${k}`)).then(setFiles).catch(() => setFiles([]))
+    api.listEntries(k).then(keep(`centries:${k}`)).then(setEntries).catch(() => setEntries([]))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project?.id])
 

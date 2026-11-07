@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../lib/api'
+import { keep, peek } from '../lib/cache'
 import { countdown, daysUntil, firstName, isLate, shortDate, today } from '../lib/format'
 import { num, space as spaceOf, statusOf } from '../lib/spaces'
 import { useStore } from '../lib/store'
@@ -12,10 +13,10 @@ import { InboxList } from './Inbox'
 export function Home() {
   const { me, projects, clients, notifications, staff } = useStore()
   const toast = useToast()
-  const [tasks, setTasks] = useState<Task[] | null>(null)
+  const [tasks, setTasks] = useState<Task[] | null>(() => peek<Task[]>('tasks:home'))
   const [open, setOpen] = useState<Task | null>(null)
 
-  const load = () => api.listTasks({}).then(setTasks).catch(toast.fail)
+  const load = () => api.listTasks({}).then(keep('tasks:home')).then(setTasks).catch(toast.fail)
   useEffect(() => {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps

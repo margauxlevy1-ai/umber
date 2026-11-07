@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api } from './api'
+import { clearCache } from './cache'
 import { isStaffRole } from './spaces'
 import type { Client, Notification, Profile, Project, SpaceAccess } from './types'
 
@@ -43,7 +44,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const user = await api.currentUser().catch(() => null)
-    setMe(user)
+    setMe((prev) => {
+      if (prev?.id !== user?.id) clearCache()
+      return user
+    })
     if (user && user.role !== 'none') {
       const [p, c, pr, a, n] = await Promise.all([
         api.listProfiles(),

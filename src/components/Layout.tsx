@@ -10,64 +10,94 @@ import { NewClientModal } from './Forms'
 
 export function Layout() {
   const { me, clients, projects, unread, staff } = useStore()
-  const [open, setOpen] = useState(false)
+  const [sheet, setSheet] = useState(false)
   const [newClient, setNewClient] = useState(false)
   const loc = useLocation()
-  useEffect(() => setOpen(false), [loc.pathname])
+  useEffect(() => {
+    setSheet(false)
+    window.scrollTo(0, 0)
+  }, [loc.pathname])
 
   const nav = ({ isActive }: { isActive: boolean }) => 'nav' + (isActive ? ' active' : '')
+  const tab = ({ isActive }: { isActive: boolean }) => 'tb' + (isActive ? ' active' : '')
+  const inClients = /^\/(clients|projets|acces)/.test(loc.pathname)
+
+  // Liste des clients : barre latérale sur ordinateur, panneau « Clients » sur téléphone
+  const clientLinks = (
+    <>
+      {clients.map((c) => {
+        const n = projects.filter((p) => p.client_id === c.id && p.status !== 'termine').length
+        return (
+          <NavLink key={c.id} to={`/clients/${c.id}`} className={nav}>
+            <span className="fl">{c.name.slice(0, 1).toUpperCase()}</span>
+            <span className="grow" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
+            {n > 0 && <span className="c">{n}</span>}
+          </NavLink>
+        )
+      })}
+      {clients.length === 0 && <div className="sub" style={{ padding: '4px 10px' }}>Aucun client pour l'instant</div>}
+      {staff && (
+        <button className="nav add" onClick={() => { setSheet(false); setNewClient(true) }}><span className="fl dash">+</span>Nouveau client</button>
+      )}
+      {staff && (
+        <>
+          <div className="sec">Réglages</div>
+          <NavLink to="/acces" className={nav}><Icon name="key" />Accès et membres</NavLink>
+        </>
+      )}
+    </>
+  )
 
   return (
     <>
       {api.demo && <DemoBar />}
       <div className="app">
-        <nav className={'side' + (open ? ' open' : '')} aria-label="Navigation principale">
-          <div className="side-top">
-            <NavLink to="/" className="brand">UMBER<span>STUDIO</span></NavLink>
-            <button className="btn ghost sm burger" onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-label="Menu">
-              <Icon name="menu" size={18} />{unread > 0 && <span className="tag s-due">{unread}</span>}
-            </button>
-          </div>
-          <div className="menu">
-            <NavLink to="/" end className={nav}><Icon name="home" />Accueil</NavLink>
-            <NavLink to="/boite" className={nav}><Icon name="inbox" />Boîte de réception{unread > 0 && <span className="n">{unread}</span>}</NavLink>
-            <NavLink to="/taches" className={nav}><Icon name="tasks" />Mes tâches</NavLink>
-
-            <div className="sec">Clients</div>
-            {clients.map((c) => {
-              const n = projects.filter((p) => p.client_id === c.id && p.status !== 'termine').length
-              return (
-                <NavLink key={c.id} to={`/clients/${c.id}`} className={nav}>
-                  <span className="fl">{c.name.slice(0, 1).toUpperCase()}</span>
-                  <span className="grow" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                  {n > 0 && <span className="c">{n}</span>}
-                </NavLink>
-              )
-            })}
-            {clients.length === 0 && <div className="sub" style={{ padding: '4px 10px' }}>Aucun client pour l'instant</div>}
-            {staff && (
-              <button className="nav add" onClick={() => setNewClient(true)}><span className="fl dash">+</span>Nouveau client</button>
-            )}
-
-            {staff && (
-              <>
-                <div className="sec">Réglages</div>
-                <NavLink to="/acces" className={nav}><Icon name="key" />Accès et membres</NavLink>
-              </>
-            )}
-
-            <div className="side-foot">
-              <NavLink to="/profil" className={({ isActive }) => 'me nav' + (isActive ? ' active' : '')}>
-                <Avatar p={me ?? undefined} />
-                <span>{me ? firstName(me.full_name) : ''}<small>{me ? roleOf(me.role).label : ''}</small></span>
-              </NavLink>
-            </div>
+        <nav className="side" aria-label="Navigation principale">
+          <NavLink to="/" className="brand">UMBER<span>STUDIO</span></NavLink>
+          <NavLink to="/" end className={nav}><Icon name="home" />Accueil</NavLink>
+          <NavLink to="/boite" className={nav}><Icon name="inbox" />Boîte de réception{unread > 0 && <span className="n">{unread}</span>}</NavLink>
+          <NavLink to="/taches" className={nav}><Icon name="tasks" />Mes tâches</NavLink>
+          <div className="sec">Clients</div>
+          {clientLinks}
+          <div className="side-foot">
+            <NavLink to="/profil" className={({ isActive }) => 'me nav' + (isActive ? ' active' : '')}>
+              <Avatar p={me ?? undefined} />
+              <span>{me ? firstName(me.full_name) : ''}<small>{me ? roleOf(me.role).label : ''}</small></span>
+            </NavLink>
           </div>
         </nav>
+
+        <header className="mtop">
+          <NavLink to="/" className="brand">UMBER<span>STUDIO</span></NavLink>
+          <NavLink to="/profil" aria-label="Mon profil"><Avatar p={me ?? undefined} lg /></NavLink>
+        </header>
+
         <main className="main">
           <Outlet />
         </main>
       </div>
+
+      <nav className="tabbar" aria-label="Navigation">
+        <NavLink to="/" end className={tab}><Icon name="home" /><span>Accueil</span></NavLink>
+        <NavLink to="/boite" className={tab}>
+          <span className="tbi"><Icon name="inbox" />{unread > 0 && <span className="badge">{unread > 9 ? '9+' : unread}</span>}</span>
+          <span>Boîte</span>
+        </NavLink>
+        <NavLink to="/taches" className={tab}><Icon name="tasks" /><span>Tâches</span></NavLink>
+        <button className={'tb' + (inClients || sheet ? ' active' : '')} onClick={() => setSheet((x) => !x)} aria-expanded={sheet}>
+          <Icon name="folder" /><span>Clients</span>
+        </button>
+      </nav>
+
+      {sheet && (
+        <div className="msheet-bg" onClick={() => setSheet(false)}>
+          <div className="msheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Clients">
+            <div className="grip" />
+            <div className="sec" style={{ paddingTop: 4 }}>Clients</div>
+            {clientLinks}
+          </div>
+        </div>
+      )}
       {newClient && <NewClientModal onClose={() => setNewClient(false)} />}
     </>
   )
