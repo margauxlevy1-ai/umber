@@ -19,6 +19,8 @@ interface Store {
   person: (id: string | null) => Profile | undefined
   canView: (projectId: string, space: number) => boolean
   canEdit: (projectId: string, space: number) => boolean
+  isArchived: (projectId: string) => boolean
+  liveProjects: Project[]
   spacesFor: (projectId: string) => number[]
   membersOf: (projectId: string, space?: number) => Profile[]
 }
@@ -83,7 +85,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const mine = access.filter((a) => a.user_id === me?.id)
     const person = (id: string | null) => profiles.find((p) => p.id === id)
     const canView = (p: string, s: number) => staff || mine.some((a) => a.project_id === p && a.space === s)
-    const canEdit = (p: string, s: number) => staff || mine.some((a) => a.project_id === p && a.space === s && a.level === 'edit')
+    const isArchived = (p: string) => Boolean(projects.find((x) => x.id === p)?.archived_at)
+    // Projet archivé : lecture seule pour tout le monde (même règle que can_edit_space dans la base)
+    const canEdit = (p: string, s: number) =>
+      !isArchived(p) && (staff || mine.some((a) => a.project_id === p && a.space === s && a.level === 'edit'))
     const spacesFor = (p: string) => [1, 2, 3, 4, 5, 6, 7, 8].filter((s) => canView(p, s))
     const membersOf = (p: string, s?: number) =>
       profiles.filter(
@@ -94,7 +99,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return {
       me, loading, profiles, clients, projects, access, notifications,
       unread: notifications.filter((n) => !n.read_at).length,
-      staff, refresh, refreshInbox, person, canView, canEdit, spacesFor, membersOf,
+      staff, refresh, refreshInbox, person, canView, canEdit, isArchived, spacesFor, membersOf,
+      liveProjects: projects.filter((p) => !p.archived_at),
     }
   }, [me, loading, profiles, clients, projects, access, notifications, refresh, refreshInbox])
 

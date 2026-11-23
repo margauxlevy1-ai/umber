@@ -60,6 +60,18 @@ Les invitations en attente restent listées en bas de « Accès et membres », a
 Pour que l'outil envoie lui-même les emails (invitations, mot de passe oublié), il faudra brancher un service
 d'envoi (Resend, par exemple) dans **Authentication > Emails > SMTP Settings**.
 
+## Archiver un projet
+
+Sur la page du client, bouton **Archiver** à côté de « Modifier » (ou dans « Modifier » > « Archiver le projet »).
+Un projet archivé :
+- disparaît des projets en cours, de l'accueil, de « Mes tâches » et des compteurs ;
+- reste consultable par toutes les personnes qui y ont accès, en **lecture seule** pour tout le monde
+  (tâches, contenus des espaces et fichiers ; la règle est dans la base, fonction `can_edit_space`) ;
+- se retrouve sous « Archives » en bas des projets du client, et dans la page **Archives** (Réglages),
+  d'où l'équipe peut le **restaurer** à tout moment.
+
+Migration : `supabase/migrations/20261123000000_archives.sql`, à lancer dans le SQL Editor.
+
 ## Développement
 
 ```

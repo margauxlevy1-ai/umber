@@ -626,3 +626,15 @@ table.grid { width: 100%; border-collapse: separate; border-spacing: 0; min-widt
   .note { right: 12px; left: 12px; width: auto; bottom: calc(132px + env(safe-area-inset-bottom)); height: min(380px, 52vh); }
   .note textarea { font-size: 16px; }
 }
+
+/* ---------- projets archivés */
+.arch-banner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px;
+  background: #ece7e0; color: var(--ink2); font-size: 13px; border: 1px dashed #b5aa9d;
+}
+.arch-banner svg { flex: none; color: var(--muted); }
+.suite.archived { background: var(--panel); border-left-color: #b5aa9d; border-style: dashed; color: var(--muted); }
+.suite.archived .num { color: #a49a8f; font-size: 22px; }
+.suite.archived.on { background: #4a443e; color: #fff; border-color: #4a443e; border-style: solid; }
+.suite.archived.on .num, .suite.archived.on .sub { color: #cfc6bc; }
+.plan.is-archived .room { filter: grayscale(.55); opacity: .85; }

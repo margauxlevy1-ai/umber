@@ -50,7 +50,7 @@ export function Access() {
   const [params, setParams] = useSearchParams()
   const clientFilter = params.get('client')
   const choices = projects.filter((p) => !clientFilter || p.client_id === clientFilter)
-  const projectId = params.get('projet') ?? choices.find((p) => p.status !== 'termine')?.id ?? choices[0]?.id ?? ''
+  const projectId = params.get('projet') ?? choices.find((p) => p.status !== 'termine' && !p.archived_at)?.id ?? choices.find((p) => !p.archived_at)?.id ?? choices[0]?.id ?? ''
   const project = projects.find((p) => p.id === projectId)
   const [inviting, setInviting] = useState(false)
   const [invites, setInvites] = useState<Invitation[]>([])
@@ -111,9 +111,14 @@ export function Access() {
             <select className="input" style={{ width: 'auto' }} value={projectId} onChange={(e) => setParams({ projet: e.target.value })} aria-label="Projet">
               {clients.map((c) => (
                 <optgroup key={c.id} label={c.name}>
-                  {projects.filter((p) => p.client_id === c.id).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  {projects.filter((p) => p.client_id === c.id && !p.archived_at).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </optgroup>
               ))}
+              {projects.some((p) => p.archived_at) && (
+                <optgroup label="Archivés">
+                  {projects.filter((p) => p.archived_at).map((p) => <option key={p.id} value={p.id}>{p.name} ({clients.find((c) => c.id === p.client_id)?.name})</option>)}
+                </optgroup>
+              )}
             </select>
           </div>
           <div className="leg">
@@ -310,7 +315,7 @@ function InviteModal({ defaultProject, onClose, onDone }: { defaultProject: stri
               <select id="ip" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
                 {clients.map((c) => (
                   <optgroup key={c.id} label={c.name}>
-                    {projects.filter((p) => p.client_id === c.id).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {projects.filter((p) => p.client_id === c.id && !p.archived_at).map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </optgroup>
                 ))}
               </select>

@@ -3,7 +3,7 @@ import { plainText } from './format'
 import { seed, type DemoDb } from './demo-data'
 import type { Api, Entry, FileRec, Notification, Profile } from './types'
 
-const KEY = 'umber-demo-v2'
+const KEY = 'umber-demo-v3'
 const WHO = 'umber-demo-user'
 const blobs = new Map<string, string>()
 
@@ -80,8 +80,10 @@ export function demoApi(): Api {
     return isStaffRole(u.role) || db.access.some((a) => a.user_id === uid && a.project_id === p && a.space === s)
   }
   const canView = (p: string, s: number) => userCanView(me().id, p, s)
+  const archived = (p: string) => Boolean(db.projects.find((x) => x.id === p)?.archived_at)
+  // Projet archivé : lecture seule pour tout le monde, comme dans la base
   const canEdit = (p: string, s: number) =>
-    staff() || db.access.some((a) => a.user_id === me().id && a.project_id === p && a.space === s && a.level === 'edit')
+    !archived(p) && (staff() || db.access.some((a) => a.user_id === me().id && a.project_id === p && a.space === s && a.level === 'edit'))
   const canViewProject = (p: string) => staff() || db.access.some((a) => a.user_id === me().id && a.project_id === p)
   const deny = () => {
     throw new Error("Tu n'as pas les droits pour faire ça.")
@@ -165,7 +167,7 @@ export function demoApi(): Api {
     },
     async createProject(p) {
       if (!staff()) deny()
-      const pr = { ...p, id: id('p'), created_at: nowIso() }
+      const pr = { ...p, id: id('p'), archived_at: null, created_at: nowIso() }
       db.projects.push(pr)
       save()
       return pr

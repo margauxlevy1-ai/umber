@@ -13,13 +13,33 @@ import { Avatars, Icon, useToast } from '../components/ui'
 export function ClientPage() {
   const { clientId = '' } = useParams()
   const [params, setParams] = useSearchParams()
-  const { clients, projects, staff, membersOf, spacesFor, access, profiles } = useStore()
+  const { clients, projects, staff, membersOf, spacesFor, access, profiles, refresh } = useStore()
   const toast = useToast()
   const client = clients.find((c) => c.id === clientId)
-  const list = projects.filter((p) => p.client_id === clientId)
+  const all = projects.filter((p) => p.client_id === clientId)
+  const list = all.filter((p) => !p.archived_at)
+  const archives = all.filter((p) => p.archived_at)
   const [showDone, setShowDone] = useState(false)
-  const shown = list.filter((p) => showDone || p.status !== 'termine' || p.id === params.get('projet'))
-  const project = list.find((p) => p.id === params.get('projet')) ?? shown[0] ?? list[0]
+  const [showArchives, setShowArchives] = useState(false)
+  const wanted = params.get('projet')
+  const shown = list.filter((p) => showDone || p.status !== 'termine' || p.id === wanted)
+  const project = all.find((p) => p.id === wanted) ?? shown[0] ?? list[0]
+  const archivesOpen = showArchives || Boolean(project?.archived_at)
+  const [busy, setBusy] = useState(false)
+
+  async function restore() {
+    if (!project) return
+    setBusy(true)
+    try {
+      await api.updateProject(project.id, { archived_at: null })
+      await refresh()
+      toast.ok(`« ${project.name} » est de retour dans les projets en cours`)
+    } catch (e) {
+      toast.fail(e)
+    } finally {
+      setBusy(false)
+    }
+  }
   const [tasks, setTasks] = useState<Task[]>([])
   const [files, setFiles] = useState<FileRec[]>([])
   const [entries, setEntries] = useState<Entry[]>([])
@@ -50,7 +70,7 @@ export function ClientPage() {
           <div className="crumbs"><Link to="/">Accueil</Link> / Clients</div>
           <h1>{client.name}</h1>
           <div className="sub">
-            {[client.note, `${list.length} projet${list.length > 1 ? 's' : ''}`, staff && `${people.length} personne${people.length > 1 ? 's' : ''} avec accès`].filter(Boolean).join(' · ')}
+            {[client.note, `${list.length} projet${list.length > 1 ? 's' : ''}`, archives.length > 0 && `${archives.length} archivé${archives.length > 1 ? 's' : ''}`, staff && `${people.length} personne${people.length > 1 ? 's' : ''} avec accès`].filter(Boolean).join(' · ')}
           </div>
         </div>
         {staff && (
@@ -83,11 +103,36 @@ export function ClientPage() {
           })}
           {staff && <button className="suite new" onClick={() => setModal('new')}>+ Nouveau projet {client.name}</button>}
         </div>
+        {archives.length > 0 && (
+          <div style={{ marginTop: 12 }}>
+            <button className="btn ghost sm" onClick={() => setShowArchives((x) => !x)} aria-expanded={archivesOpen}>
+              <Icon name="archive" size={15} /> Archives ({archives.length}) {archivesOpen ? '▴' : '▾'}
+            </button>
+            {archivesOpen && (
+              <div className="suites" style={{ marginTop: 10 }}>
+                {archives.map((p) => (
+                  <button key={p.id} className={'suite archived' + (p.id === project?.id ? ' on' : '')} onClick={() => setParams({ projet: p.id })}>
+                    <span className="num">Archivé</span>
+                    <span style={{ fontWeight: 600 }}>{p.name}</span>
+                    <span className="sub">{[shortDate(p.event_date), p.place, `archivé le ${shortDate(p.archived_at!.slice(0, 10))}`].filter(Boolean).join(' · ')}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
         {list.length === 0 && !staff && <div className="empty">Aucun projet pour l'instant.</div>}
       </section>
 
       {project && (
-        <section className="plan">
+        <section className={'plan' + (project.archived_at ? ' is-archived' : '')}>
+          {project.archived_at && (
+            <div className="arch-banner">
+              <Icon name="archive" size={16} />
+              <span className="grow">Projet archivé le {shortDate(project.archived_at.slice(0, 10))} : tout reste consultable, en lecture seule.</span>
+              {staff && <button className="btn sm" disabled={busy} onClick={restore}>Restaurer le projet</button>}
+            </div>
+          )}
           <div className="row between">
             <h2>{project.name} : {visible.length === 8 ? 'ses 8 espaces' : `tes ${visible.length} espace${visible.length > 1 ? 's' : ''}`}</h2>
             <div className="row">
@@ -96,6 +141,17 @@ export function ClientPage() {
                 return l > 0 ? <span className="tag s-late">{l} tâche{l > 1 ? 's' : ''} en retard</span> : <span className="tag s-ok">Rien en retard</span>
               })()}
               {staff && <button className="btn sm" onClick={() => setModal('edit')}>Modifier</button>}
+              {staff && !project.archived_at && (
+                <button className="btn sm ghost" title="Archiver le projet" onClick={async () => {
+                  if (!confirm(`Archiver « ${project.name} » ? Il disparaît des projets en cours et passe en lecture seule pour tout le monde. Tu pourras le restaurer à tout moment.`)) return
+                  try {
+                    await api.updateProject(project.id, { archived_at: new Date().toISOString() })
+                    await refresh()
+                    setParams({})
+                    toast.ok(`« ${project.name} » est archivé`)
+                  } catch (e) { toast.fail(e) }
+                }}><Icon name="archive" size={15} /> Archiver</button>
+              )}
             </div>
           </div>
           <div className="rooms">

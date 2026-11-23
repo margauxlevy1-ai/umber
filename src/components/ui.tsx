@@ -79,6 +79,7 @@ const paths: Record<string, ReactNode> = {
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   out: <path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" />,
   folder: <path d="M3 6h7l2 2h9v11H3z" />,
+  archive: (<><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M5 8v11h14V8M10 12h4" /></>),
 }
 
 export function Icon({ name, size }: { name: keyof typeof paths | string; size?: number }) {

@@ -11,12 +11,13 @@ import { useToast } from '../components/ui'
 import { InboxList } from './Inbox'
 
 export function Home() {
-  const { me, projects, clients, notifications, staff } = useStore()
+  const { me, liveProjects: projects, isArchived, clients, notifications, staff } = useStore()
   const toast = useToast()
-  const [tasks, setTasks] = useState<Task[] | null>(() => peek<Task[]>('tasks:home'))
+  const [allTasks, setAllTasks] = useState<Task[] | null>(() => peek<Task[]>('tasks:home'))
+  const tasks = allTasks && allTasks.filter((t) => !isArchived(t.project_id))
   const [open, setOpen] = useState<Task | null>(null)
 
-  const load = () => api.listTasks({}).then(keep('tasks:home')).then(setTasks).catch(toast.fail)
+  const load = () => api.listTasks({}).then(keep('tasks:home')).then(setAllTasks).catch(toast.fail)
   useEffect(() => {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps

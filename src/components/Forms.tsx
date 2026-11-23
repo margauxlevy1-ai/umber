@@ -82,6 +82,21 @@ export function ProjectModal({ clientId, project, onClose, onSaved }: {
     }
   }
 
+  async function toggleArchive() {
+    if (!project) return
+    const archiving = !project.archived_at
+    if (archiving && !confirm(`Archiver « ${project.name} » ? Il disparaît des projets en cours et passe en lecture seule pour tout le monde. Tu pourras le restaurer à tout moment.`)) return
+    try {
+      await api.updateProject(project.id, { archived_at: archiving ? new Date().toISOString() : null })
+      await refresh()
+      onClose()
+      toast.ok(archiving ? `« ${project.name} » est archivé` : `« ${project.name} » est restauré`)
+      nav(`/clients/${project.client_id}${archiving ? '' : `?projet=${project.id}`}`)
+    } catch (err) {
+      toast.fail(err)
+    }
+  }
+
   async function remove() {
     if (!project) return
     if (!confirm(`Supprimer « ${project.name} » et tout son contenu (tâches, fichiers, discussions) ? Cette action est définitive.`)) return
@@ -117,7 +132,12 @@ export function ProjectModal({ clientId, project, onClose, onSaved }: {
         <div className="f"><label htmlFor="pl">Lieu ou ville</label><input id="pl" value={place} onChange={(e) => setPlace(e.target.value)} placeholder="Ex. Paris 3e" /></div>
         {!project && <div className="sub">Le projet est créé avec ses 8 espaces, vides. Tu donnes ensuite les accès dans « Accès et membres ».</div>}
         <div className="row between">
-          {project ? <button type="button" className="btn danger" onClick={remove}>Supprimer le projet</button> : <span />}
+          {project ? (
+            <div className="row">
+              <button type="button" className="btn" onClick={toggleArchive}>{project.archived_at ? 'Restaurer le projet' : 'Archiver le projet'}</button>
+              <button type="button" className="btn ghost danger" onClick={remove}>Supprimer</button>
+            </div>
+          ) : <span />}
           <div className="row">
             <button type="button" className="btn" onClick={onClose}>Annuler</button>
             <button className="btn dark" disabled={busy || !name.trim()}>{project ? 'Enregistrer' : 'Créer le projet'}</button>

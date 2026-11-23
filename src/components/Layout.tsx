@@ -21,13 +21,13 @@ export function Layout() {
 
   const nav = ({ isActive }: { isActive: boolean }) => 'nav' + (isActive ? ' active' : '')
   const tab = ({ isActive }: { isActive: boolean }) => 'tb' + (isActive ? ' active' : '')
-  const inClients = /^\/(clients|projets|acces)/.test(loc.pathname)
+  const inClients = /^\/(clients|projets|acces|archives)/.test(loc.pathname)
 
   // Liste des clients : barre latérale sur ordinateur, panneau « Clients » sur téléphone
   const clientLinks = (
     <>
       {clients.map((c) => {
-        const n = projects.filter((p) => p.client_id === c.id && p.status !== 'termine').length
+        const n = projects.filter((p) => p.client_id === c.id && p.status !== 'termine' && !p.archived_at).length
         return (
           <NavLink key={c.id} to={`/clients/${c.id}`} className={nav}>
             <span className="fl" style={{ background: clientTone(c.name).tint, color: clientTone(c.name).color }}>{c.name.slice(0, 1).toUpperCase()}</span>
@@ -44,6 +44,9 @@ export function Layout() {
         <>
           <div className="sec">Réglages</div>
           <NavLink to="/acces" className={nav}><Icon name="key" />Accès et membres</NavLink>
+          <NavLink to="/archives" className={nav}><Icon name="archive" />Archives
+            {projects.some((p) => p.archived_at) && <span className="c">{projects.filter((p) => p.archived_at).length}</span>}
+          </NavLink>
         </>
       )}
     </>

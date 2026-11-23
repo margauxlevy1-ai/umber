@@ -3,6 +3,7 @@ import { Layout } from './components/Layout'
 import { ToastProvider } from './components/ui'
 import { StoreProvider, useStore } from './lib/store'
 import { Access } from './pages/Access'
+import { Archives } from './pages/Archives'
 import { ClientPage } from './pages/ClientPage'
 import { Home } from './pages/Home'
 import { Inbox } from './pages/Inbox'
@@ -25,6 +26,7 @@ function Gate() {
         <Route path="clients/:clientId" element={<ClientPage />} />
         <Route path="projets/:projectId/espaces/:n" element={<SpacePage />} />
         <Route path="acces" element={<Access />} />
+        <Route path="archives" element={<Archives />} />
         <Route path="profil" element={<Profile />} />
         <Route path="mot-de-passe" element={<SetPassword />} />
         <Route path="*" element={<Navigate to="/" replace />} />

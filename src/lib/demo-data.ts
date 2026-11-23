@@ -30,11 +30,11 @@ export function seed(): DemoDb {
     { id: 'c-oree', name: 'Cabinet Orée', note: '', created_at: now() },
   ]
   const projects: Project[] = [
-    { id: 'p-presse', client_id: 'c-more', name: 'Soirée presse', event_date: addDays(35), place: 'Lyon', status: 'en_cours', created_at: now() },
-    { id: 'p-printemps', client_id: 'c-more', name: 'Lancement printemps', event_date: addDays(132), place: 'Paris', status: 'cadrage', created_at: now() },
-    { id: 'p-popup', client_id: 'c-more', name: 'Tournée pop-up', event_date: addDays(160), place: 'Lyon, Bordeaux, Lille', status: 'cadrage', created_at: now() },
-    { id: 'p-celeste', client_id: 'c-celeste', name: 'Dîner clients', event_date: addDays(21), place: 'Bordeaux', status: 'en_cours', created_at: now() },
-    { id: 'p-oree', client_id: 'c-oree', name: 'Séminaire équipe', event_date: addDays(-40), place: 'Annecy', status: 'termine', created_at: now() },
+    { id: 'p-presse', client_id: 'c-more', name: 'Soirée presse', event_date: addDays(35), place: 'Lyon', status: 'en_cours', archived_at: null, created_at: now() },
+    { id: 'p-printemps', client_id: 'c-more', name: 'Lancement printemps', event_date: addDays(132), place: 'Paris', status: 'cadrage', archived_at: null, created_at: now() },
+    { id: 'p-popup', client_id: 'c-more', name: 'Tournée pop-up', event_date: addDays(160), place: 'Lyon, Bordeaux, Lille', status: 'cadrage', archived_at: null, created_at: now() },
+    { id: 'p-celeste', client_id: 'c-celeste', name: 'Dîner clients', event_date: addDays(21), place: 'Bordeaux', status: 'en_cours', archived_at: null, created_at: now() },
+    { id: 'p-oree', client_id: 'c-oree', name: 'Séminaire équipe', event_date: addDays(-40), place: 'Annecy', status: 'termine', archived_at: addDays(-20) + 'T10:00:00Z', created_at: now() },
   ]
   const access: SpaceAccess[] = []
   const grant = (user_id: string, project_id: string, edit: number[], view: number[]) => {

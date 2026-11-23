@@ -92,11 +92,19 @@ export function SpacePage() {
           <div className="sub">{sp.hint}</div>
         </div>
         <div className="row">
-          {!editable && <span className="tag s-mute"><Icon name="eye" size={12} /> Lecture seule</span>}
+          {!editable && !project.archived_at && <span className="tag s-mute"><Icon name="eye" size={12} /> Lecture seule</span>}
           <Avatars people={invited} />
           {staff && <Link className="btn sm" to={`/acces?projet=${project.id}`}>Accès</Link>}
         </div>
       </div>
+
+      {project.archived_at && (
+        <div className="arch-banner">
+          <Icon name="archive" size={16} />
+          <span className="grow">Projet archivé le {shortDate(project.archived_at.slice(0, 10))} : tout reste consultable, en lecture seule.</span>
+          {staff && <Link className="btn sm" to={`/clients/${project.client_id}?projet=${project.id}`}>Restaurer</Link>}
+        </div>
+      )}
 
       <nav className="doors" aria-label="Espaces du projet">
         {visibleSpaces.map((s) => (

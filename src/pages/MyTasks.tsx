@@ -9,7 +9,7 @@ import { TaskDrawer, TaskTable, type TaskGroup } from '../components/Tasks'
 import { useToast } from '../components/ui'
 
 export function MyTasks() {
-  const { me, staff, profiles, projects, clients } = useStore()
+  const { me, staff, profiles, liveProjects: projects, clients } = useStore()
   const toast = useToast()
   const [params, setParams] = useSearchParams()
   const who = params.get('qui') ?? me?.id ?? ''

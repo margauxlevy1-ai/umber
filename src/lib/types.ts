@@ -26,6 +26,7 @@ export interface Project {
   event_date: string | null
   place: string
   status: ProjectStatus
+  archived_at: string | null
   created_at: string
 }
 
@@ -147,7 +148,7 @@ export interface Api {
   updateClient(id: string, patch: Partial<Pick<Client, 'name' | 'note'>>): Promise<void>
   listProjects(): Promise<Project[]>
   createProject(p: Pick<Project, 'client_id' | 'name' | 'event_date' | 'place' | 'status'>): Promise<Project>
-  updateProject(id: string, patch: Partial<Pick<Project, 'name' | 'event_date' | 'place' | 'status'>>): Promise<void>
+  updateProject(id: string, patch: Partial<Pick<Project, 'name' | 'event_date' | 'place' | 'status' | 'archived_at'>>): Promise<void>
   deleteProject(id: string): Promise<void>
 
   listAccess(): Promise<SpaceAccess[]>
